@@ -503,30 +503,6 @@
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Merging Encoder Outputs to LLM Embedding Space">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#prepending-modality-encoder-outputs" class="md-nav__link">
-    <span class="md-ellipsis">
-      Prepending modality encoder outputs
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#injecting-modality-encoder-outputs" class="md-nav__link">
-    <span class="md-ellipsis">
-      Injecting modality encoder outputs
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
 </li>
       
     </ul>
@@ -702,30 +678,6 @@
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Merging Encoder Outputs to LLM Embedding Space">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#prepending-modality-encoder-outputs" class="md-nav__link">
-    <span class="md-ellipsis">
-      Prepending modality encoder outputs
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#injecting-modality-encoder-outputs" class="md-nav__link">
-    <span class="md-ellipsis">
-      Injecting modality encoder outputs
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
 </li>
       
     </ul>
@@ -824,54 +776,13 @@ It still computes gradients for frozen modules and you cannot get any benefits i
 <h2 id="merging-encoder-outputs-to-llm-embedding-space">Merging Encoder Outputs to LLM Embedding Space</h2>
 <p>When multimodal LLM forward is executed, modality encoders are executed first.
 After that, LLM input embedding layer is executed, the modality encoder outputs is embedded into the LLM embedding space, and then execute the remaining LLM layers with modality encoder outputs and LLM embedding outputs.
-Cornstarch provides two ways of embedding  modality encoder outputs to LLM embedding outputs: prepending and injecting.</p>
-<h3 id="prepending-modality-encoder-outputs">Prepending modality encoder outputs</h3>
-<p>Like initial VLMS (e.g. Llava 1.5), <em>prepending</em> simply attaches all modality encoder outputs prior to text embedding outputs.
-The order of prepending is the opposite to the order of modality encoders.
-When there are multiple modality encoders, encoders are executed in order of their order in the <code>MultimodalModule.encoders</code> dictionary.
-If the output of the last modality encoder is prepended first, the result will be <code>[modality_encoder1][modality_encoder2]...[modality_encoderN][llm_embedding]</code>, which is the same as the order of modality encoders in the dictionary.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>It does not require any specific LLM tokens to specify the location of modality encoders.</p>
-</div>
-<h3 id="injecting-modality-encoder-outputs">Injecting modality encoder outputs</h3>
-<p>Unlike simply prepending modality encoders, <em>injecting</em> mehcanism injects modality encoder outputs to the location that user wants to put them to.
+Cornstarch follows HuggingFace's way of embedding: <em>injection mechanism</em> that injects modality encoder outputs to proper locations that user wants to put them to.
 To specify where to put the modality encoder outputs, custom tokens must be added before running the model.
-Use <code>MultimodalModel.set_token_ids()</code> API to register the token IDs per modality encoders:</p>
-<div class="language-py highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-4-1"> 1</a></span>
-<span class="normal"><a href="#__codelineno-4-2"> 2</a></span>
-<span class="normal"><a href="#__codelineno-4-3"> 3</a></span>
-<span class="normal"><a href="#__codelineno-4-4"> 4</a></span>
-<span class="normal"><a href="#__codelineno-4-5"> 5</a></span>
-<span class="normal"><a href="#__codelineno-4-6"> 6</a></span>
-<span class="normal"><a href="#__codelineno-4-7"> 7</a></span>
-<span class="normal"><a href="#__codelineno-4-8"> 8</a></span>
-<span class="normal"><a href="#__codelineno-4-9"> 9</a></span>
-<span class="normal"><a href="#__codelineno-4-10">10</a></span>
-<span class="normal"><a href="#__codelineno-4-11">11</a></span>
-<span class="normal"><a href="#__codelineno-4-12">12</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1"></a><span class="n">mllm</span> <span class="o">=</span> <span class="n">MultimodalModel</span><span class="p">(</span>
-<a id="__codelineno-4-2" name="__codelineno-4-2"></a>    <span class="n">encoders</span><span class="o">=</span><span class="p">{</span>
-<a id="__codelineno-4-3" name="__codelineno-4-3"></a>        <span class="s2">&quot;vision&quot;</span><span class="p">:</span> <span class="o">...</span><span class="p">,</span>
-<a id="__codelineno-4-4" name="__codelineno-4-4"></a>        <span class="s2">&quot;audio&quot;</span><span class="p">:</span> <span class="o">...</span><span class="p">,</span>
-<a id="__codelineno-4-5" name="__codelineno-4-5"></a>    <span class="p">},</span>
-<a id="__codelineno-4-6" name="__codelineno-4-6"></a>    <span class="n">language_model</span><span class="o">=</span><span class="n">llm</span><span class="p">,</span>
-<a id="__codelineno-4-7" name="__codelineno-4-7"></a><span class="p">)</span>
-<a id="__codelineno-4-8" name="__codelineno-4-8"></a>
-<a id="__codelineno-4-9" name="__codelineno-4-9"></a><span class="n">mllm</span><span class="o">.</span><span class="n">set_token_ids</span><span class="p">({</span>
-<a id="__codelineno-4-10" name="__codelineno-4-10"></a>    <span class="s2">&quot;vision&quot;</span><span class="p">:</span> <span class="n">vision_token_id</span><span class="p">,</span>
-<a id="__codelineno-4-11" name="__codelineno-4-11"></a>    <span class="s2">&quot;audio&quot;</span><span class="p">:</span> <span class="n">audio_token_id</span><span class="p">,</span>
-<a id="__codelineno-4-12" name="__codelineno-4-12"></a><span class="p">})</span>
-</code></pre></div></td></tr></table></div>
-<p>The model is automatically switched to injection mode and registered token IDs are used in merging modality encoder outputs.</p>
-<p>It is a user responsibility to prepare placeholders that modality encoder outputs will replace.
-During injection, Cornstarch replaces embeddings in the indices of the corresponding token IDs with the modality encoder outputs. For example, if the vision token ID is 200 and the given <code>input_ids</code> (tokenized text) looks like:</p>
-<p><div class="language-text highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-5-1">1</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1"></a>input_ids = [1, 33, 7752, 10452, 200, 200, 200, 200, 4465, 4832, 6921, ...]
-</code></pre></div></td></tr></table></div>
-You are expecting there would be 4 vision tokens from the vision encoder, which will be injected at indices 4, 5, 6, and 7 (zero-based).</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>The number of tokens must match.</p>
-</div>
+Cornstarch automatically adds the custom token information to the model when <code>MultimodalProcessor</code> is created, as described in <a href="../preprocessing_inputs">Preprocessing inputs page</a>.</p>
+<p>To maintain the language model's original embedding table, Cornstarch exploits a tricky way of executing the input embedding.
+If we execute the input embedding with <code>input_ids</code> where custom tokens are embedded, the embedding layer will raise an out of index exception.
+To avoid such exception, Cornstarch first masks all custom tokens with 0 and executes the input embedding.
+The result for the masked tokens will be replaced by the encoder outputs, thus we do not have to care about the result in the corresponding token indices.</p>
 
 
 

@@ -995,6 +995,10 @@ For example, If you want to make a 2-stage pipeline template,</p>
 <p>Cornstarch verifies if the pipeline template is for the given unimodal model by checking its name and modules_per_stage.
 It will raise an exception if a pipeline template for different model is given.</p>
 </div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Currently Cornstarch pipeline parallelism does not support synchronizing tied word embeddings.</p>
+</div>
 <h3 id="data-parallelism">Data Parallelism</h3>
 <p>Data Parallelism is not explictly specified by some arguments.
 Instead, Cornstarch automatically infers how many data parallel replicas are needed by computing the number of ranks in a parallel multimodal LLM and divide the world size by it.</p>

@@ -464,6 +464,15 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#using-peft" class="md-nav__link">
+    <span class="md-ellipsis">
+      Using PEFT
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#callback-interface" class="md-nav__link">
     <span class="md-ellipsis">
       Callback Interface
@@ -705,6 +714,15 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#using-peft" class="md-nav__link">
+    <span class="md-ellipsis">
+      Using PEFT
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#callback-interface" class="md-nav__link">
     <span class="md-ellipsis">
       Callback Interface
@@ -854,56 +872,54 @@ Instead, when a <code>MultimodalModel</code> is created, it checks whether a pro
 <li><code>mlp</code>: has two <code>torch.nn.Linear</code> layers, where there is an activation layer as <code>init_activation</code> type in the middle.
 The type of activations that Cornstarch supports is defined in <a href="https://github.com/huggingface/transformers/blob/v4.45.0/src/transformers/activations.py#L200"><code>transformers.activations.ACT2CLS</code></a>.</li>
 </ul>
+<h2 id="using-peft">Using PEFT</h2>
+<div class="admonition info">
+<p class="admonition-title">Info</p>
+<p><a href="https://github.com/cornstarch-org/Cornstarch">Cornstarch repository</a> provides an end-to-end example
+in <a href="https://github.com/cornstarch-org/Cornstarch/blob/main/examples/pretrain_vlm_lora.py"><code>examples/pretrain_vlm_lora.py</code></a></p>
+</div>
+<p>Cornstarch is compatible with HuggingFace PEFT.</p>
+<p>Before passing models to <code>MultimodalModel</code>, the model can be wrapped with peft (e.g. via <code>get_peft_model</code>):</p>
+<div class="language-py highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-6-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-6-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-6-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-6-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-6-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-6-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-6-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-6-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-6-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-6-10">10</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1"></a><span class="kn">from</span> <span class="nn">transformers.models.llama.modeling_llama</span> <span class="kn">import</span> <span class="n">LlamaForCausalLM</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2"></a><span class="kn">from</span> <span class="nn">peft</span> <span class="kn">import</span> <span class="n">LoraConfig</span><span class="p">,</span> <span class="n">get_peft_model</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3"></a><span class="kn">from</span> <span class="nn">cornstarch.models.multimodal_language_model</span> <span class="kn">import</span> <span class="n">MultimodalModel</span>
+<a id="__codelineno-6-4" name="__codelineno-6-4"></a>
+<a id="__codelineno-6-5" name="__codelineno-6-5"></a><span class="n">llm</span> <span class="o">=</span> <span class="n">LlamaForCausalLM</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span><span class="s2">&quot;meta-llama/Llama-3.1-8B-Instruct&quot;</span><span class="p">)</span>
+<a id="__codelineno-6-6" name="__codelineno-6-6"></a>
+<a id="__codelineno-6-7" name="__codelineno-6-7"></a><span class="n">peft_config</span> <span class="o">=</span> <span class="n">LoraConfig</span><span class="p">(</span><span class="n">task_type</span><span class="o">=</span><span class="n">TaskType</span><span class="o">.</span><span class="n">CAUSAL_LM</span><span class="p">,</span> <span class="n">inference_mode</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<a id="__codelineno-6-8" name="__codelineno-6-8"></a><span class="n">llm</span> <span class="o">=</span> <span class="n">get_peft_model</span><span class="p">(</span><span class="n">llm</span><span class="p">,</span> <span class="n">peft_config</span><span class="p">)</span>
+<a id="__codelineno-6-9" name="__codelineno-6-9"></a>
+<a id="__codelineno-6-10" name="__codelineno-6-10"></a><span class="n">mllm</span> <span class="o">=</span> <span class="n">MultimodalModel</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">language_model</span><span class="o">=</span><span class="n">llm</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
 <h2 id="callback-interface">Callback Interface</h2>
 <p>Cornstarch provides callback interface to add multimodal specific features without modifying underlying unimodal modules.
 For example, Llava-Next has to choose an image feature based on its select strategy, which its base vision encoder such as <code>CLIPVisionModel</code> does not have.
 Callback is a great place to implement such features.</p>
 <p>Cornstarch provides three types of callbacks in <code>ModalEncoderModule</code>:</p>
-<div class="language-py highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-6-1">1</a></span>
-<span class="normal"><a href="#__codelineno-6-2">2</a></span>
-<span class="normal"><a href="#__codelineno-6-3">3</a></span>
-<span class="normal"><a href="#__codelineno-6-4">4</a></span>
-<span class="normal"><a href="#__codelineno-6-5">5</a></span>
-<span class="normal"><a href="#__codelineno-6-6">6</a></span>
-<span class="normal"><a href="#__codelineno-6-7">7</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1"></a><span class="n">ModalEncoderModule</span><span class="p">(</span>
-<a id="__codelineno-6-2" name="__codelineno-6-2"></a>    <span class="n">model</span><span class="o">=</span><span class="n">vision_encoder</span><span class="p">,</span>
-<a id="__codelineno-6-3" name="__codelineno-6-3"></a>    <span class="n">projector</span><span class="o">=</span><span class="n">vision_projector</span><span class="p">,</span>
-<a id="__codelineno-6-4" name="__codelineno-6-4"></a><span class="hll">    <span class="n">preprocess_callback</span><span class="o">=</span><span class="n">preprocess_vision_callback</span><span class="p">,</span>
-</span><a id="__codelineno-6-5" name="__codelineno-6-5"></a><span class="hll">    <span class="n">postprocess_module_callback</span><span class="o">=</span><span class="n">postprocess_vision_callback</span><span class="p">,</span>
-</span><a id="__codelineno-6-6" name="__codelineno-6-6"></a><span class="hll">    <span class="n">postprocess_projector_callback</span><span class="o">=</span><span class="n">postprocess_projector_callback</span><span class="p">,</span>
-</span><a id="__codelineno-6-7" name="__codelineno-6-7"></a><span class="p">)</span>
+<div class="language-py highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-7-1">1</a></span>
+<span class="normal"><a href="#__codelineno-7-2">2</a></span>
+<span class="normal"><a href="#__codelineno-7-3">3</a></span>
+<span class="normal"><a href="#__codelineno-7-4">4</a></span>
+<span class="normal"><a href="#__codelineno-7-5">5</a></span>
+<span class="normal"><a href="#__codelineno-7-6">6</a></span>
+<span class="normal"><a href="#__codelineno-7-7">7</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1"></a><span class="n">ModalEncoderModule</span><span class="p">(</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2"></a>    <span class="n">model</span><span class="o">=</span><span class="n">vision_encoder</span><span class="p">,</span>
+<a id="__codelineno-7-3" name="__codelineno-7-3"></a>    <span class="n">projector</span><span class="o">=</span><span class="n">vision_projector</span><span class="p">,</span>
+<a id="__codelineno-7-4" name="__codelineno-7-4"></a><span class="hll">    <span class="n">preprocess_callback</span><span class="o">=</span><span class="n">preprocess_vision_callback</span><span class="p">,</span>
+</span><a id="__codelineno-7-5" name="__codelineno-7-5"></a><span class="hll">    <span class="n">postprocess_module_callback</span><span class="o">=</span><span class="n">postprocess_vision_callback</span><span class="p">,</span>
+</span><a id="__codelineno-7-6" name="__codelineno-7-6"></a><span class="hll">    <span class="n">postprocess_projector_callback</span><span class="o">=</span><span class="n">postprocess_projector_callback</span><span class="p">,</span>
+</span><a id="__codelineno-7-7" name="__codelineno-7-7"></a><span class="p">)</span>
 </code></pre></div></td></tr></table></div>
 <p>The execution order of callbacks and modules is as follows:</p>
-<div class="language-py highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-7-1"> 1</a></span>
-<span class="normal"><a href="#__codelineno-7-2"> 2</a></span>
-<span class="normal"><a href="#__codelineno-7-3"> 3</a></span>
-<span class="normal"><a href="#__codelineno-7-4"> 4</a></span>
-<span class="normal"><a href="#__codelineno-7-5"> 5</a></span>
-<span class="normal"><a href="#__codelineno-7-6"> 6</a></span>
-<span class="normal"><a href="#__codelineno-7-7"> 7</a></span>
-<span class="normal"><a href="#__codelineno-7-8"> 8</a></span>
-<span class="normal"><a href="#__codelineno-7-9"> 9</a></span>
-<span class="normal"><a href="#__codelineno-7-10">10</a></span>
-<span class="normal"><a href="#__codelineno-7-11">11</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1"></a><span class="n">encoder</span><span class="p">:</span> <span class="n">ModalEncoderModule</span>
-<a id="__codelineno-7-2" name="__codelineno-7-2"></a><span class="k">for</span> <span class="n">encoder</span> <span class="ow">in</span> <span class="n">mllm</span><span class="o">.</span><span class="n">encoders</span><span class="p">:</span>
-<a id="__codelineno-7-3" name="__codelineno-7-3"></a>    <span class="n">preprocessed_encoder_input</span> <span class="o">=</span> <span class="n">encoder</span><span class="o">.</span><span class="n">preprocess_callback</span><span class="p">(</span><span class="n">encoder_input</span><span class="p">)</span>
-<a id="__codelineno-7-4" name="__codelineno-7-4"></a>    <span class="n">encoder_output</span> <span class="o">=</span> <span class="n">encoder</span><span class="o">.</span><span class="n">module</span><span class="p">(</span><span class="n">preprocessed_encoder_input</span><span class="p">)</span>
-<a id="__codelineno-7-5" name="__codelineno-7-5"></a>    <span class="n">postprocessed_encoder_output</span> <span class="o">=</span> <span class="n">encoder</span><span class="o">.</span><span class="n">postprocess_module_callback</span><span class="p">(</span><span class="n">encoder_output</span><span class="p">)</span>
-<a id="__codelineno-7-6" name="__codelineno-7-6"></a>    <span class="n">module_output</span> <span class="o">=</span> <span class="n">encoder</span><span class="o">.</span><span class="n">projector</span><span class="p">(</span><span class="n">postprocessed_encoder_output</span><span class="p">)</span>
-<a id="__codelineno-7-7" name="__codelineno-7-7"></a>    <span class="n">postprocessed_module_output</span> <span class="o">=</span> <span class="n">encoder</span><span class="o">.</span><span class="n">postprocess_projector_callback</span><span class="p">(</span><span class="n">module_output</span><span class="p">)</span>
-<a id="__codelineno-7-8" name="__codelineno-7-8"></a>
-<a id="__codelineno-7-9" name="__codelineno-7-9"></a><span class="c1"># merge a list of postprocessed_module_outputs to text_embedding</span>
-<a id="__codelineno-7-10" name="__codelineno-7-10"></a><span class="n">merged_input</span> <span class="o">=</span> <span class="n">merge</span><span class="p">(</span><span class="n">postprocessed_module_outputs</span><span class="p">,</span> <span class="n">language_inputs_embedding</span><span class="p">)</span>
-<a id="__codelineno-7-11" name="__codelineno-7-11"></a><span class="n">output</span> <span class="o">=</span> <span class="n">language_model</span><span class="p">(</span><span class="n">merged_input</span><span class="p">)</span>
-</code></pre></div></td></tr></table></div>
-<p>Inputs and outputs of each callback are as follows:</p>
-<ul>
-<li><code>preprocess_callback(inputs: dict[str, Any]) -&gt; dict[str, Any]</code>: gets the inputs of the modality encoder as a dictionary. Returns a modified dictionary which will be used as actual inputs of the modality encoder.</li>
-<li><code>postprocess_encoder_callback(inputs: dict[str, Any], output: BaseModelOutput | tuple) -&gt; BaseModelOutput | tuple</code>: gets the inputs and the output of the modality encoder. The output is either <code>BaseModelOutput</code> or <code>tuple</code>, depending on the encoder configuration <code>return_dict</code>. Returns a modified output which will be forwarded to a projector.</li>
-<li><code>postprocess_projector_callback(inputs: dict[str, Any], output: BaseModelOutput | tuple) -&gt; BaseModelOutput | tuple</code>: gets the inputs of the modality encoder, and the output of the projector. The output is either <code>BaseModelOutput</code> or <code>tuple</code>, depending on the encoder configuration <code>return_dict</code>. Returns a modified output which will be forwarded to the LLM.</li>
-</ul>
-<h3 id="a-llava-next-example-of-utilizing-callback-interface">A Llava-Next example of utilizing callback interface</h3>
-<p>The original <a href="https://github.com/huggingface/transformers/blob/5d7739f15a6e50de416977fe2cc9cb516d67edda/src/transformers/models/llava_next/modeling_llava_next.py#L346"><code>LlavaNextForConditionalGeneration.forward()</code></a> is implemented as follows:</p>
 <div class="language-py highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-8-1"> 1</a></span>
 <span class="normal"><a href="#__codelineno-8-2"> 2</a></span>
 <span class="normal"><a href="#__codelineno-8-3"> 3</a></span>
@@ -914,88 +930,27 @@ Callback is a great place to implement such features.</p>
 <span class="normal"><a href="#__codelineno-8-8"> 8</a></span>
 <span class="normal"><a href="#__codelineno-8-9"> 9</a></span>
 <span class="normal"><a href="#__codelineno-8-10">10</a></span>
-<span class="normal"><a href="#__codelineno-8-11">11</a></span>
-<span class="normal"><a href="#__codelineno-8-12">12</a></span>
-<span class="normal"><a href="#__codelineno-8-13">13</a></span>
-<span class="normal"><a href="#__codelineno-8-14">14</a></span>
-<span class="normal"><a href="#__codelineno-8-15">15</a></span>
-<span class="normal"><a href="#__codelineno-8-16">16</a></span>
-<span class="normal"><a href="#__codelineno-8-17">17</a></span>
-<span class="normal"><a href="#__codelineno-8-18">18</a></span>
-<span class="normal"><a href="#__codelineno-8-19">19</a></span>
-<span class="normal"><a href="#__codelineno-8-20">20</a></span>
-<span class="normal"><a href="#__codelineno-8-21">21</a></span>
-<span class="normal"><a href="#__codelineno-8-22">22</a></span>
-<span class="normal"><a href="#__codelineno-8-23">23</a></span>
-<span class="normal"><a href="#__codelineno-8-24">24</a></span>
-<span class="normal"><a href="#__codelineno-8-25">25</a></span>
-<span class="normal"><a href="#__codelineno-8-26">26</a></span>
-<span class="normal"><a href="#__codelineno-8-27">27</a></span>
-<span class="normal"><a href="#__codelineno-8-28">28</a></span>
-<span class="normal"><a href="#__codelineno-8-29">29</a></span>
-<span class="normal"><a href="#__codelineno-8-30">30</a></span>
-<span class="normal"><a href="#__codelineno-8-31">31</a></span>
-<span class="normal"><a href="#__codelineno-8-32">32</a></span>
-<span class="normal"><a href="#__codelineno-8-33">33</a></span>
-<span class="normal"><a href="#__codelineno-8-34">34</a></span>
-<span class="normal"><a href="#__codelineno-8-35">35</a></span>
-<span class="normal"><a href="#__codelineno-8-36">36</a></span>
-<span class="normal"><a href="#__codelineno-8-37">37</a></span>
-<span class="normal"><a href="#__codelineno-8-38">38</a></span>
-<span class="normal"><a href="#__codelineno-8-39">39</a></span>
-<span class="normal"><a href="#__codelineno-8-40">40</a></span>
-<span class="normal"><a href="#__codelineno-8-41">41</a></span>
-<span class="normal"><a href="#__codelineno-8-42">42</a></span>
-<span class="normal"><a href="#__codelineno-8-43">43</a></span>
-<span class="normal"><a href="#__codelineno-8-44">44</a></span>
-<span class="normal"><a href="#__codelineno-8-45">45</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1"></a><span class="k">class</span> <span class="nc">LlavaNextForConditionalGeneration</span><span class="p">:</span>
-<a id="__codelineno-8-2" name="__codelineno-8-2"></a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span>
-<a id="__codelineno-8-3" name="__codelineno-8-3"></a>        <span class="bp">self</span><span class="p">,</span>
-<a id="__codelineno-8-4" name="__codelineno-8-4"></a>        <span class="o">...</span>
-<a id="__codelineno-8-5" name="__codelineno-8-5"></a>    <span class="p">):</span>
-<a id="__codelineno-8-6" name="__codelineno-8-6"></a>        <span class="o">...</span>
-<a id="__codelineno-8-7" name="__codelineno-8-7"></a>
-<a id="__codelineno-8-8" name="__codelineno-8-8"></a>        <span class="k">if</span> <span class="n">inputs_embeds</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-<a id="__codelineno-8-9" name="__codelineno-8-9"></a>            <span class="n">inputs_embeds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_input_embeddings</span><span class="p">()(</span><span class="n">input_ids</span><span class="p">)</span>
-<a id="__codelineno-8-10" name="__codelineno-8-10"></a>
-<a id="__codelineno-8-11" name="__codelineno-8-11"></a>        <span class="n">image_features</span> <span class="o">=</span> <span class="kc">None</span>
-<a id="__codelineno-8-12" name="__codelineno-8-12"></a>        <span class="k">if</span> <span class="n">pixel_values</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">pixel_values</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-<a id="__codelineno-8-13" name="__codelineno-8-13"></a><span class="hll">            <span class="n">image_features</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_image_features</span><span class="p">(</span>
-</span><a id="__codelineno-8-14" name="__codelineno-8-14"></a><span class="hll">                <span class="n">pixel_values</span><span class="p">,</span>
-</span><a id="__codelineno-8-15" name="__codelineno-8-15"></a><span class="hll">                <span class="n">image_sizes</span><span class="p">,</span>
-</span><a id="__codelineno-8-16" name="__codelineno-8-16"></a><span class="hll">                <span class="n">vision_feature_layer</span><span class="o">=</span><span class="n">vision_feature_layer</span><span class="p">,</span>
-</span><a id="__codelineno-8-17" name="__codelineno-8-17"></a><span class="hll">                <span class="n">vision_feature_select_strategy</span><span class="o">=</span><span class="n">vision_feature_select_strategy</span><span class="p">,</span>
-</span><a id="__codelineno-8-18" name="__codelineno-8-18"></a><span class="hll">            <span class="p">)</span>
-</span><a id="__codelineno-8-19" name="__codelineno-8-19"></a><span class="hll">
-</span><a id="__codelineno-8-20" name="__codelineno-8-20"></a><span class="hll">            <span class="c1"># NOTE we only support multimodal_patch_merge_type == &quot;spatial_unpad&quot;</span>
-</span><a id="__codelineno-8-21" name="__codelineno-8-21"></a><span class="hll">            <span class="n">image_features</span><span class="p">,</span> <span class="n">feature_lens</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pack_image_features</span><span class="p">(</span>
-</span><a id="__codelineno-8-22" name="__codelineno-8-22"></a><span class="hll">                <span class="n">image_features</span><span class="p">,</span>
-</span><a id="__codelineno-8-23" name="__codelineno-8-23"></a><span class="hll">                <span class="n">image_sizes</span><span class="p">,</span>
-</span><a id="__codelineno-8-24" name="__codelineno-8-24"></a><span class="hll">                <span class="n">vision_feature_select_strategy</span><span class="o">=</span><span class="n">vision_feature_select_strategy</span><span class="p">,</span>
-</span><a id="__codelineno-8-25" name="__codelineno-8-25"></a><span class="hll">                <span class="n">image_newline</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">image_newline</span><span class="p">,</span>
-</span><a id="__codelineno-8-26" name="__codelineno-8-26"></a><span class="hll">            <span class="p">)</span>
-</span><a id="__codelineno-8-27" name="__codelineno-8-27"></a>
-<a id="__codelineno-8-28" name="__codelineno-8-28"></a>        <span class="c1"># embed vision output result to inputs_embeds</span>
-<a id="__codelineno-8-29" name="__codelineno-8-29"></a>        <span class="n">n_image_tokens</span> <span class="o">=</span> <span class="p">(</span><span class="n">input_ids</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">image_token_index</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
-<a id="__codelineno-8-30" name="__codelineno-8-30"></a>        <span class="n">n_image_features</span> <span class="o">=</span> <span class="n">image_features</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-<a id="__codelineno-8-31" name="__codelineno-8-31"></a>        <span class="k">if</span> <span class="n">n_image_tokens</span> <span class="o">!=</span> <span class="n">n_image_features</span><span class="p">:</span>
-<a id="__codelineno-8-32" name="__codelineno-8-32"></a>            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-<a id="__codelineno-8-33" name="__codelineno-8-33"></a>                <span class="sa">f</span><span class="s2">&quot;Image features and image tokens do not match: tokens: </span><span class="si">{</span><span class="n">n_image_tokens</span><span class="si">}</span><span class="s2">, features </span><span class="si">{</span><span class="n">n_image_features</span><span class="si">}</span><span class="s2">&quot;</span>
-<a id="__codelineno-8-34" name="__codelineno-8-34"></a>            <span class="p">)</span>
-<a id="__codelineno-8-35" name="__codelineno-8-35"></a>        <span class="n">special_image_mask</span> <span class="o">=</span> <span class="p">(</span>
-<a id="__codelineno-8-36" name="__codelineno-8-36"></a>            <span class="p">(</span><span class="n">input_ids</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">image_token_index</span><span class="p">)</span>
-<a id="__codelineno-8-37" name="__codelineno-8-37"></a>            <span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
-<a id="__codelineno-8-38" name="__codelineno-8-38"></a>            <span class="o">.</span><span class="n">expand_as</span><span class="p">(</span><span class="n">inputs_embeds</span><span class="p">)</span>
-<a id="__codelineno-8-39" name="__codelineno-8-39"></a>            <span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">inputs_embeds</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
-<a id="__codelineno-8-40" name="__codelineno-8-40"></a>        <span class="p">)</span>
-<a id="__codelineno-8-41" name="__codelineno-8-41"></a>        <span class="n">image_features</span> <span class="o">=</span> <span class="n">image_features</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">inputs_embeds</span><span class="o">.</span><span class="n">device</span><span class="p">,</span> <span class="n">inputs_embeds</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
-<a id="__codelineno-8-42" name="__codelineno-8-42"></a>        <span class="n">inputs_embeds</span> <span class="o">=</span> <span class="n">inputs_embeds</span><span class="o">.</span><span class="n">masked_scatter</span><span class="p">(</span><span class="n">special_image_mask</span><span class="p">,</span> <span class="n">image_features</span><span class="p">)</span>
-<a id="__codelineno-8-43" name="__codelineno-8-43"></a>
-<a id="__codelineno-8-44" name="__codelineno-8-44"></a>        <span class="n">outputs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">language_model</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
-<a id="__codelineno-8-45" name="__codelineno-8-45"></a>        <span class="o">...</span>
+<span class="normal"><a href="#__codelineno-8-11">11</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1"></a><span class="n">encoder</span><span class="p">:</span> <span class="n">ModalEncoderModule</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2"></a><span class="k">for</span> <span class="n">encoder</span> <span class="ow">in</span> <span class="n">mllm</span><span class="o">.</span><span class="n">encoders</span><span class="p">:</span>
+<a id="__codelineno-8-3" name="__codelineno-8-3"></a>    <span class="n">preprocessed_encoder_input</span> <span class="o">=</span> <span class="n">encoder</span><span class="o">.</span><span class="n">preprocess_callback</span><span class="p">(</span><span class="n">encoder_input</span><span class="p">)</span>
+<a id="__codelineno-8-4" name="__codelineno-8-4"></a>    <span class="n">encoder_output</span> <span class="o">=</span> <span class="n">encoder</span><span class="o">.</span><span class="n">module</span><span class="p">(</span><span class="n">preprocessed_encoder_input</span><span class="p">)</span>
+<a id="__codelineno-8-5" name="__codelineno-8-5"></a>    <span class="n">postprocessed_encoder_output</span> <span class="o">=</span> <span class="n">encoder</span><span class="o">.</span><span class="n">postprocess_module_callback</span><span class="p">(</span><span class="n">encoder_output</span><span class="p">)</span>
+<a id="__codelineno-8-6" name="__codelineno-8-6"></a>    <span class="n">module_output</span> <span class="o">=</span> <span class="n">encoder</span><span class="o">.</span><span class="n">projector</span><span class="p">(</span><span class="n">postprocessed_encoder_output</span><span class="p">)</span>
+<a id="__codelineno-8-7" name="__codelineno-8-7"></a>    <span class="n">postprocessed_module_output</span> <span class="o">=</span> <span class="n">encoder</span><span class="o">.</span><span class="n">postprocess_projector_callback</span><span class="p">(</span><span class="n">module_output</span><span class="p">)</span>
+<a id="__codelineno-8-8" name="__codelineno-8-8"></a>
+<a id="__codelineno-8-9" name="__codelineno-8-9"></a><span class="c1"># merge a list of postprocessed_module_outputs to text_embedding</span>
+<a id="__codelineno-8-10" name="__codelineno-8-10"></a><span class="n">merged_input</span> <span class="o">=</span> <span class="n">merge</span><span class="p">(</span><span class="n">postprocessed_module_outputs</span><span class="p">,</span> <span class="n">language_inputs_embedding</span><span class="p">)</span>
+<a id="__codelineno-8-11" name="__codelineno-8-11"></a><span class="n">output</span> <span class="o">=</span> <span class="n">language_model</span><span class="p">(</span><span class="n">merged_input</span><span class="p">)</span>
 </code></pre></div></td></tr></table></div>
-<p>The highlighted Llava-next specific feature can be implemented in a callback:</p>
-<p><div class="language-py highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-9-1"> 1</a></span>
+<p>Inputs and outputs of each callback are as follows:</p>
+<ul>
+<li><code>preprocess_callback(inputs: dict[str, Any]) -&gt; dict[str, Any]</code>: gets the inputs of the modality encoder as a dictionary. Returns a modified dictionary which will be used as actual inputs of the modality encoder.</li>
+<li><code>postprocess_encoder_callback(inputs: dict[str, Any], output: BaseModelOutput | tuple) -&gt; BaseModelOutput | tuple</code>: gets the inputs and the output of the modality encoder. The output is either <code>BaseModelOutput</code> or <code>tuple</code>, depending on the encoder configuration <code>return_dict</code>. Returns a modified output which will be forwarded to a projector.</li>
+<li><code>postprocess_projector_callback(inputs: dict[str, Any], output: BaseModelOutput | tuple) -&gt; BaseModelOutput | tuple</code>: gets the inputs of the modality encoder, and the output of the projector. The output is either <code>BaseModelOutput</code> or <code>tuple</code>, depending on the encoder configuration <code>return_dict</code>. Returns a modified output which will be forwarded to the LLM.</li>
+</ul>
+<h3 id="a-llava-next-example-of-utilizing-callback-interface">A Llava-Next example of utilizing callback interface</h3>
+<p>The original <a href="https://github.com/huggingface/transformers/blob/5d7739f15a6e50de416977fe2cc9cb516d67edda/src/transformers/models/llava_next/modeling_llava_next.py#L346"><code>LlavaNextForConditionalGeneration.forward()</code></a> is implemented as follows:</p>
+<div class="language-py highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-9-1"> 1</a></span>
 <span class="normal"><a href="#__codelineno-9-2"> 2</a></span>
 <span class="normal"><a href="#__codelineno-9-3"> 3</a></span>
 <span class="normal"><a href="#__codelineno-9-4"> 4</a></span>
@@ -1024,39 +979,69 @@ Callback is a great place to implement such features.</p>
 <span class="normal"><a href="#__codelineno-9-27">27</a></span>
 <span class="normal"><a href="#__codelineno-9-28">28</a></span>
 <span class="normal"><a href="#__codelineno-9-29">29</a></span>
-<span class="normal"><a href="#__codelineno-9-30">30</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1"></a><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span>
-<a id="__codelineno-9-2" name="__codelineno-9-2"></a><span class="kn">from</span> <span class="nn">transformers.modeling_outputs</span> <span class="kn">import</span> <span class="n">BaseModelOutput</span><span class="p">,</span> <span class="n">ModelOutput</span>
-<a id="__codelineno-9-3" name="__codelineno-9-3"></a>
-<a id="__codelineno-9-4" name="__codelineno-9-4"></a><span class="k">def</span> <span class="nf">postprocess_projector_callback</span><span class="p">(</span>
-<a id="__codelineno-9-5" name="__codelineno-9-5"></a>    <span class="n">inputs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
-<a id="__codelineno-9-6" name="__codelineno-9-6"></a>    <span class="n">output</span><span class="p">:</span> <span class="n">BaseModelOutput</span> <span class="o">|</span> <span class="nb">tuple</span><span class="p">,</span>
-<a id="__codelineno-9-7" name="__codelineno-9-7"></a>    <span class="n">vision_feature_select_strategy</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-<a id="__codelineno-9-8" name="__codelineno-9-8"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BaseModelOutput</span> <span class="o">|</span> <span class="nb">tuple</span><span class="p">:</span>
-<a id="__codelineno-9-9" name="__codelineno-9-9"></a>    <span class="n">pixel_values</span> <span class="o">=</span> <span class="n">inputs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;pixel_values&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+<span class="normal"><a href="#__codelineno-9-30">30</a></span>
+<span class="normal"><a href="#__codelineno-9-31">31</a></span>
+<span class="normal"><a href="#__codelineno-9-32">32</a></span>
+<span class="normal"><a href="#__codelineno-9-33">33</a></span>
+<span class="normal"><a href="#__codelineno-9-34">34</a></span>
+<span class="normal"><a href="#__codelineno-9-35">35</a></span>
+<span class="normal"><a href="#__codelineno-9-36">36</a></span>
+<span class="normal"><a href="#__codelineno-9-37">37</a></span>
+<span class="normal"><a href="#__codelineno-9-38">38</a></span>
+<span class="normal"><a href="#__codelineno-9-39">39</a></span>
+<span class="normal"><a href="#__codelineno-9-40">40</a></span>
+<span class="normal"><a href="#__codelineno-9-41">41</a></span>
+<span class="normal"><a href="#__codelineno-9-42">42</a></span>
+<span class="normal"><a href="#__codelineno-9-43">43</a></span>
+<span class="normal"><a href="#__codelineno-9-44">44</a></span>
+<span class="normal"><a href="#__codelineno-9-45">45</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1"></a><span class="k">class</span> <span class="nc">LlavaNextForConditionalGeneration</span><span class="p">:</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2"></a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span>
+<a id="__codelineno-9-3" name="__codelineno-9-3"></a>        <span class="bp">self</span><span class="p">,</span>
+<a id="__codelineno-9-4" name="__codelineno-9-4"></a>        <span class="o">...</span>
+<a id="__codelineno-9-5" name="__codelineno-9-5"></a>    <span class="p">):</span>
+<a id="__codelineno-9-6" name="__codelineno-9-6"></a>        <span class="o">...</span>
+<a id="__codelineno-9-7" name="__codelineno-9-7"></a>
+<a id="__codelineno-9-8" name="__codelineno-9-8"></a>        <span class="k">if</span> <span class="n">inputs_embeds</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+<a id="__codelineno-9-9" name="__codelineno-9-9"></a>            <span class="n">inputs_embeds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_input_embeddings</span><span class="p">()(</span><span class="n">input_ids</span><span class="p">)</span>
 <a id="__codelineno-9-10" name="__codelineno-9-10"></a>
-<a id="__codelineno-9-11" name="__codelineno-9-11"></a>    <span class="k">if</span> <span class="n">pixel_values</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">pixel_values</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-<a id="__codelineno-9-12" name="__codelineno-9-12"></a>        <span class="c1"># output[0] == output.last_hidden_state</span>
-<a id="__codelineno-9-13" name="__codelineno-9-13"></a><span class="hll">        <span class="n">image_features</span> <span class="o">=</span> <span class="n">output</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-</span><a id="__codelineno-9-14" name="__codelineno-9-14"></a><span class="hll">
-</span><a id="__codelineno-9-15" name="__codelineno-9-15"></a><span class="hll">        <span class="c1"># pack_image_features function should be borrowed from</span>
-</span><a id="__codelineno-9-16" name="__codelineno-9-16"></a><span class="hll">        <span class="c1"># the LlavaNextForConditionalGeneration class</span>
-</span><a id="__codelineno-9-17" name="__codelineno-9-17"></a><span class="hll">        <span class="n">image_features</span><span class="p">,</span> <span class="n">feature_lens</span> <span class="o">=</span> <span class="n">pack_image_features</span><span class="p">(</span>
-</span><a id="__codelineno-9-18" name="__codelineno-9-18"></a><span class="hll">            <span class="n">image_features</span><span class="p">,</span>
-</span><a id="__codelineno-9-19" name="__codelineno-9-19"></a><span class="hll">            <span class="n">image_sizes</span><span class="p">,</span>
-</span><a id="__codelineno-9-20" name="__codelineno-9-20"></a><span class="hll">            <span class="n">vision_feature_select_strategy</span><span class="o">=</span><span class="n">vision_feature_select_strategy</span><span class="p">,</span>
-</span><a id="__codelineno-9-21" name="__codelineno-9-21"></a><span class="hll">            <span class="n">image_newline</span><span class="o">=</span><span class="n">image_newline</span><span class="p">,</span>
-</span><a id="__codelineno-9-22" name="__codelineno-9-22"></a>        <span class="p">)</span>
-<a id="__codelineno-9-23" name="__codelineno-9-23"></a>
-<a id="__codelineno-9-24" name="__codelineno-9-24"></a>    <span class="c1"># replace output hidden state with postprocessed results</span>
-<a id="__codelineno-9-25" name="__codelineno-9-25"></a>    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="n">ModelOutput</span><span class="p">):</span>
-<a id="__codelineno-9-26" name="__codelineno-9-26"></a>        <span class="n">output</span><span class="o">.</span><span class="n">last_hidden_state</span> <span class="o">=</span> <span class="n">image_features</span>
-<a id="__codelineno-9-27" name="__codelineno-9-27"></a>    <span class="k">else</span><span class="p">:</span>
-<a id="__codelineno-9-28" name="__codelineno-9-28"></a>        <span class="n">output</span> <span class="o">=</span> <span class="p">(</span><span class="n">image_features</span><span class="p">,)</span> <span class="o">+</span> <span class="n">output</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
-<a id="__codelineno-9-29" name="__codelineno-9-29"></a>
-<a id="__codelineno-9-30" name="__codelineno-9-30"></a>    <span class="k">return</span> <span class="n">output</span>
+<a id="__codelineno-9-11" name="__codelineno-9-11"></a>        <span class="n">image_features</span> <span class="o">=</span> <span class="kc">None</span>
+<a id="__codelineno-9-12" name="__codelineno-9-12"></a>        <span class="k">if</span> <span class="n">pixel_values</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">pixel_values</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+<a id="__codelineno-9-13" name="__codelineno-9-13"></a><span class="hll">            <span class="n">image_features</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_image_features</span><span class="p">(</span>
+</span><a id="__codelineno-9-14" name="__codelineno-9-14"></a><span class="hll">                <span class="n">pixel_values</span><span class="p">,</span>
+</span><a id="__codelineno-9-15" name="__codelineno-9-15"></a><span class="hll">                <span class="n">image_sizes</span><span class="p">,</span>
+</span><a id="__codelineno-9-16" name="__codelineno-9-16"></a><span class="hll">                <span class="n">vision_feature_layer</span><span class="o">=</span><span class="n">vision_feature_layer</span><span class="p">,</span>
+</span><a id="__codelineno-9-17" name="__codelineno-9-17"></a><span class="hll">                <span class="n">vision_feature_select_strategy</span><span class="o">=</span><span class="n">vision_feature_select_strategy</span><span class="p">,</span>
+</span><a id="__codelineno-9-18" name="__codelineno-9-18"></a><span class="hll">            <span class="p">)</span>
+</span><a id="__codelineno-9-19" name="__codelineno-9-19"></a><span class="hll">
+</span><a id="__codelineno-9-20" name="__codelineno-9-20"></a><span class="hll">            <span class="c1"># NOTE we only support multimodal_patch_merge_type == &quot;spatial_unpad&quot;</span>
+</span><a id="__codelineno-9-21" name="__codelineno-9-21"></a><span class="hll">            <span class="n">image_features</span><span class="p">,</span> <span class="n">feature_lens</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pack_image_features</span><span class="p">(</span>
+</span><a id="__codelineno-9-22" name="__codelineno-9-22"></a><span class="hll">                <span class="n">image_features</span><span class="p">,</span>
+</span><a id="__codelineno-9-23" name="__codelineno-9-23"></a><span class="hll">                <span class="n">image_sizes</span><span class="p">,</span>
+</span><a id="__codelineno-9-24" name="__codelineno-9-24"></a><span class="hll">                <span class="n">vision_feature_select_strategy</span><span class="o">=</span><span class="n">vision_feature_select_strategy</span><span class="p">,</span>
+</span><a id="__codelineno-9-25" name="__codelineno-9-25"></a><span class="hll">                <span class="n">image_newline</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">image_newline</span><span class="p">,</span>
+</span><a id="__codelineno-9-26" name="__codelineno-9-26"></a><span class="hll">            <span class="p">)</span>
+</span><a id="__codelineno-9-27" name="__codelineno-9-27"></a>
+<a id="__codelineno-9-28" name="__codelineno-9-28"></a>        <span class="c1"># embed vision output result to inputs_embeds</span>
+<a id="__codelineno-9-29" name="__codelineno-9-29"></a>        <span class="n">n_image_tokens</span> <span class="o">=</span> <span class="p">(</span><span class="n">input_ids</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">image_token_index</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+<a id="__codelineno-9-30" name="__codelineno-9-30"></a>        <span class="n">n_image_features</span> <span class="o">=</span> <span class="n">image_features</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<a id="__codelineno-9-31" name="__codelineno-9-31"></a>        <span class="k">if</span> <span class="n">n_image_tokens</span> <span class="o">!=</span> <span class="n">n_image_features</span><span class="p">:</span>
+<a id="__codelineno-9-32" name="__codelineno-9-32"></a>            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+<a id="__codelineno-9-33" name="__codelineno-9-33"></a>                <span class="sa">f</span><span class="s2">&quot;Image features and image tokens do not match: tokens: </span><span class="si">{</span><span class="n">n_image_tokens</span><span class="si">}</span><span class="s2">, features </span><span class="si">{</span><span class="n">n_image_features</span><span class="si">}</span><span class="s2">&quot;</span>
+<a id="__codelineno-9-34" name="__codelineno-9-34"></a>            <span class="p">)</span>
+<a id="__codelineno-9-35" name="__codelineno-9-35"></a>        <span class="n">special_image_mask</span> <span class="o">=</span> <span class="p">(</span>
+<a id="__codelineno-9-36" name="__codelineno-9-36"></a>            <span class="p">(</span><span class="n">input_ids</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">image_token_index</span><span class="p">)</span>
+<a id="__codelineno-9-37" name="__codelineno-9-37"></a>            <span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+<a id="__codelineno-9-38" name="__codelineno-9-38"></a>            <span class="o">.</span><span class="n">expand_as</span><span class="p">(</span><span class="n">inputs_embeds</span><span class="p">)</span>
+<a id="__codelineno-9-39" name="__codelineno-9-39"></a>            <span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">inputs_embeds</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+<a id="__codelineno-9-40" name="__codelineno-9-40"></a>        <span class="p">)</span>
+<a id="__codelineno-9-41" name="__codelineno-9-41"></a>        <span class="n">image_features</span> <span class="o">=</span> <span class="n">image_features</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">inputs_embeds</span><span class="o">.</span><span class="n">device</span><span class="p">,</span> <span class="n">inputs_embeds</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+<a id="__codelineno-9-42" name="__codelineno-9-42"></a>        <span class="n">inputs_embeds</span> <span class="o">=</span> <span class="n">inputs_embeds</span><span class="o">.</span><span class="n">masked_scatter</span><span class="p">(</span><span class="n">special_image_mask</span><span class="p">,</span> <span class="n">image_features</span><span class="p">)</span>
+<a id="__codelineno-9-43" name="__codelineno-9-43"></a>
+<a id="__codelineno-9-44" name="__codelineno-9-44"></a>        <span class="n">outputs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">language_model</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+<a id="__codelineno-9-45" name="__codelineno-9-45"></a>        <span class="o">...</span>
 </code></pre></div></td></tr></table></div>
-which can be used for any combination of a vision encoder and an LLM:</p>
-<div class="language-py highlight"><table class="highlighttable"><tr><th colspan="2" class="filename"><span class="filename">Llava-Next with CLIP+Mistral using Cornstarch</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-10-1"> 1</a></span>
+<p>The highlighted Llava-next specific feature can be implemented in a callback:</p>
+<p><div class="language-py highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-10-1"> 1</a></span>
 <span class="normal"><a href="#__codelineno-10-2"> 2</a></span>
 <span class="normal"><a href="#__codelineno-10-3"> 3</a></span>
 <span class="normal"><a href="#__codelineno-10-4"> 4</a></span>
@@ -1067,20 +1052,57 @@ which can be used for any combination of a vision encoder and an LLM:</p>
 <span class="normal"><a href="#__codelineno-10-9"> 9</a></span>
 <span class="normal"><a href="#__codelineno-10-10">10</a></span>
 <span class="normal"><a href="#__codelineno-10-11">11</a></span>
-<span class="normal"><a href="#__codelineno-10-12">12</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1"></a><span class="n">clip</span> <span class="o">=</span> <span class="n">CLIPVisionModel</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span><span class="s2">&quot;openai/clip-vit-large-patch14&quot;</span><span class="p">)</span>
-<a id="__codelineno-10-2" name="__codelineno-10-2"></a><span class="n">mistral</span> <span class="o">=</span> <span class="n">MistralForCausalLM</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span><span class="s2">&quot;mistralai/Mistral-7B-Instruct-v0.3&quot;</span><span class="p">)</span>
+<span class="normal"><a href="#__codelineno-10-12">12</a></span>
+<span class="normal"><a href="#__codelineno-10-13">13</a></span>
+<span class="normal"><a href="#__codelineno-10-14">14</a></span>
+<span class="normal"><a href="#__codelineno-10-15">15</a></span>
+<span class="normal"><a href="#__codelineno-10-16">16</a></span>
+<span class="normal"><a href="#__codelineno-10-17">17</a></span>
+<span class="normal"><a href="#__codelineno-10-18">18</a></span>
+<span class="normal"><a href="#__codelineno-10-19">19</a></span>
+<span class="normal"><a href="#__codelineno-10-20">20</a></span>
+<span class="normal"><a href="#__codelineno-10-21">21</a></span>
+<span class="normal"><a href="#__codelineno-10-22">22</a></span>
+<span class="normal"><a href="#__codelineno-10-23">23</a></span>
+<span class="normal"><a href="#__codelineno-10-24">24</a></span>
+<span class="normal"><a href="#__codelineno-10-25">25</a></span>
+<span class="normal"><a href="#__codelineno-10-26">26</a></span>
+<span class="normal"><a href="#__codelineno-10-27">27</a></span>
+<span class="normal"><a href="#__codelineno-10-28">28</a></span>
+<span class="normal"><a href="#__codelineno-10-29">29</a></span>
+<span class="normal"><a href="#__codelineno-10-30">30</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1"></a><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span>
+<a id="__codelineno-10-2" name="__codelineno-10-2"></a><span class="kn">from</span> <span class="nn">transformers.modeling_outputs</span> <span class="kn">import</span> <span class="n">BaseModelOutput</span><span class="p">,</span> <span class="n">ModelOutput</span>
 <a id="__codelineno-10-3" name="__codelineno-10-3"></a>
-<a id="__codelineno-10-4" name="__codelineno-10-4"></a><span class="n">mllm</span> <span class="o">=</span> <span class="n">MultimodalModel</span><span class="p">(</span>
-<a id="__codelineno-10-5" name="__codelineno-10-5"></a>    <span class="n">encoders</span><span class="o">=</span><span class="p">{</span>
-<a id="__codelineno-10-6" name="__codelineno-10-6"></a>        <span class="s2">&quot;vision&quot;</span><span class="p">:</span> <span class="n">ModalEncoderModule</span><span class="p">(</span>
-<a id="__codelineno-10-7" name="__codelineno-10-7"></a>            <span class="n">model</span><span class="o">=</span><span class="n">clip</span><span class="p">,</span>
-<a id="__codelineno-10-8" name="__codelineno-10-8"></a>            <span class="n">postprocess_projector_callback</span><span class="o">=</span><span class="n">postprocess_projector_callback</span><span class="p">,</span>
-<a id="__codelineno-10-9" name="__codelineno-10-9"></a>        <span class="p">)</span>
-<a id="__codelineno-10-10" name="__codelineno-10-10"></a>    <span class="p">},</span>
-<a id="__codelineno-10-11" name="__codelineno-10-11"></a>    <span class="n">language_model</span><span class="o">=</span><span class="n">mistral</span><span class="p">,</span>
-<a id="__codelineno-10-12" name="__codelineno-10-12"></a><span class="p">)</span>
+<a id="__codelineno-10-4" name="__codelineno-10-4"></a><span class="k">def</span> <span class="nf">postprocess_projector_callback</span><span class="p">(</span>
+<a id="__codelineno-10-5" name="__codelineno-10-5"></a>    <span class="n">inputs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+<a id="__codelineno-10-6" name="__codelineno-10-6"></a>    <span class="n">output</span><span class="p">:</span> <span class="n">BaseModelOutput</span> <span class="o">|</span> <span class="nb">tuple</span><span class="p">,</span>
+<a id="__codelineno-10-7" name="__codelineno-10-7"></a>    <span class="n">vision_feature_select_strategy</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-10-8" name="__codelineno-10-8"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BaseModelOutput</span> <span class="o">|</span> <span class="nb">tuple</span><span class="p">:</span>
+<a id="__codelineno-10-9" name="__codelineno-10-9"></a>    <span class="n">pixel_values</span> <span class="o">=</span> <span class="n">inputs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;pixel_values&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+<a id="__codelineno-10-10" name="__codelineno-10-10"></a>
+<a id="__codelineno-10-11" name="__codelineno-10-11"></a>    <span class="k">if</span> <span class="n">pixel_values</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">pixel_values</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+<a id="__codelineno-10-12" name="__codelineno-10-12"></a>        <span class="c1"># output[0] == output.last_hidden_state</span>
+<a id="__codelineno-10-13" name="__codelineno-10-13"></a><span class="hll">        <span class="n">image_features</span> <span class="o">=</span> <span class="n">output</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+</span><a id="__codelineno-10-14" name="__codelineno-10-14"></a><span class="hll">
+</span><a id="__codelineno-10-15" name="__codelineno-10-15"></a><span class="hll">        <span class="c1"># pack_image_features function should be borrowed from</span>
+</span><a id="__codelineno-10-16" name="__codelineno-10-16"></a><span class="hll">        <span class="c1"># the LlavaNextForConditionalGeneration class</span>
+</span><a id="__codelineno-10-17" name="__codelineno-10-17"></a><span class="hll">        <span class="n">image_features</span><span class="p">,</span> <span class="n">feature_lens</span> <span class="o">=</span> <span class="n">pack_image_features</span><span class="p">(</span>
+</span><a id="__codelineno-10-18" name="__codelineno-10-18"></a><span class="hll">            <span class="n">image_features</span><span class="p">,</span>
+</span><a id="__codelineno-10-19" name="__codelineno-10-19"></a><span class="hll">            <span class="n">image_sizes</span><span class="p">,</span>
+</span><a id="__codelineno-10-20" name="__codelineno-10-20"></a><span class="hll">            <span class="n">vision_feature_select_strategy</span><span class="o">=</span><span class="n">vision_feature_select_strategy</span><span class="p">,</span>
+</span><a id="__codelineno-10-21" name="__codelineno-10-21"></a><span class="hll">            <span class="n">image_newline</span><span class="o">=</span><span class="n">image_newline</span><span class="p">,</span>
+</span><a id="__codelineno-10-22" name="__codelineno-10-22"></a>        <span class="p">)</span>
+<a id="__codelineno-10-23" name="__codelineno-10-23"></a>
+<a id="__codelineno-10-24" name="__codelineno-10-24"></a>    <span class="c1"># replace output hidden state with postprocessed results</span>
+<a id="__codelineno-10-25" name="__codelineno-10-25"></a>    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="n">ModelOutput</span><span class="p">):</span>
+<a id="__codelineno-10-26" name="__codelineno-10-26"></a>        <span class="n">output</span><span class="o">.</span><span class="n">last_hidden_state</span> <span class="o">=</span> <span class="n">image_features</span>
+<a id="__codelineno-10-27" name="__codelineno-10-27"></a>    <span class="k">else</span><span class="p">:</span>
+<a id="__codelineno-10-28" name="__codelineno-10-28"></a>        <span class="n">output</span> <span class="o">=</span> <span class="p">(</span><span class="n">image_features</span><span class="p">,)</span> <span class="o">+</span> <span class="n">output</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+<a id="__codelineno-10-29" name="__codelineno-10-29"></a>
+<a id="__codelineno-10-30" name="__codelineno-10-30"></a>    <span class="k">return</span> <span class="n">output</span>
 </code></pre></div></td></tr></table></div>
-<div class="language-py highlight"><table class="highlighttable"><tr><th colspan="2" class="filename"><span class="filename">Llava-Next with Siglip+Llama using Cornstarch</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-11-1"> 1</a></span>
+which can be used for any combination of a vision encoder and an LLM:</p>
+<div class="language-py highlight"><table class="highlighttable"><tr><th colspan="2" class="filename"><span class="filename">Llava-Next with CLIP+Mistral using Cornstarch</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-11-1"> 1</a></span>
 <span class="normal"><a href="#__codelineno-11-2"> 2</a></span>
 <span class="normal"><a href="#__codelineno-11-3"> 3</a></span>
 <span class="normal"><a href="#__codelineno-11-4"> 4</a></span>
@@ -1091,18 +1113,42 @@ which can be used for any combination of a vision encoder and an LLM:</p>
 <span class="normal"><a href="#__codelineno-11-9"> 9</a></span>
 <span class="normal"><a href="#__codelineno-11-10">10</a></span>
 <span class="normal"><a href="#__codelineno-11-11">11</a></span>
-<span class="normal"><a href="#__codelineno-11-12">12</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1"></a><span class="n">siglip</span> <span class="o">=</span> <span class="n">SiglipVisionModel</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span><span class="s2">&quot;google/siglip-so400m-patch14-384&quot;</span><span class="p">)</span>
-<a id="__codelineno-11-2" name="__codelineno-11-2"></a><span class="n">llama</span> <span class="o">=</span> <span class="n">LlamaForCausalLM</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span><span class="s2">&quot;meta-llama/Llama-3.1-8B-Instruct&quot;</span><span class="p">)</span>
+<span class="normal"><a href="#__codelineno-11-12">12</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1"></a><span class="n">clip</span> <span class="o">=</span> <span class="n">CLIPVisionModel</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span><span class="s2">&quot;openai/clip-vit-large-patch14&quot;</span><span class="p">)</span>
+<a id="__codelineno-11-2" name="__codelineno-11-2"></a><span class="n">mistral</span> <span class="o">=</span> <span class="n">MistralForCausalLM</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span><span class="s2">&quot;mistralai/Mistral-7B-Instruct-v0.3&quot;</span><span class="p">)</span>
 <a id="__codelineno-11-3" name="__codelineno-11-3"></a>
 <a id="__codelineno-11-4" name="__codelineno-11-4"></a><span class="n">mllm</span> <span class="o">=</span> <span class="n">MultimodalModel</span><span class="p">(</span>
 <a id="__codelineno-11-5" name="__codelineno-11-5"></a>    <span class="n">encoders</span><span class="o">=</span><span class="p">{</span>
 <a id="__codelineno-11-6" name="__codelineno-11-6"></a>        <span class="s2">&quot;vision&quot;</span><span class="p">:</span> <span class="n">ModalEncoderModule</span><span class="p">(</span>
-<a id="__codelineno-11-7" name="__codelineno-11-7"></a>            <span class="n">model</span><span class="o">=</span><span class="n">siglip</span><span class="p">,</span>
+<a id="__codelineno-11-7" name="__codelineno-11-7"></a>            <span class="n">model</span><span class="o">=</span><span class="n">clip</span><span class="p">,</span>
 <a id="__codelineno-11-8" name="__codelineno-11-8"></a>            <span class="n">postprocess_projector_callback</span><span class="o">=</span><span class="n">postprocess_projector_callback</span><span class="p">,</span>
 <a id="__codelineno-11-9" name="__codelineno-11-9"></a>        <span class="p">)</span>
 <a id="__codelineno-11-10" name="__codelineno-11-10"></a>    <span class="p">},</span>
-<a id="__codelineno-11-11" name="__codelineno-11-11"></a>    <span class="n">language_model</span><span class="o">=</span><span class="n">llama</span><span class="p">,</span>
+<a id="__codelineno-11-11" name="__codelineno-11-11"></a>    <span class="n">language_model</span><span class="o">=</span><span class="n">mistral</span><span class="p">,</span>
 <a id="__codelineno-11-12" name="__codelineno-11-12"></a><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+<div class="language-py highlight"><table class="highlighttable"><tr><th colspan="2" class="filename"><span class="filename">Llava-Next with Siglip+Llama using Cornstarch</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-12-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-12-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-12-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-12-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-12-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-12-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-12-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-12-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-12-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-12-10">10</a></span>
+<span class="normal"><a href="#__codelineno-12-11">11</a></span>
+<span class="normal"><a href="#__codelineno-12-12">12</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1"></a><span class="n">siglip</span> <span class="o">=</span> <span class="n">SiglipVisionModel</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span><span class="s2">&quot;google/siglip-so400m-patch14-384&quot;</span><span class="p">)</span>
+<a id="__codelineno-12-2" name="__codelineno-12-2"></a><span class="n">llama</span> <span class="o">=</span> <span class="n">LlamaForCausalLM</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span><span class="s2">&quot;meta-llama/Llama-3.1-8B-Instruct&quot;</span><span class="p">)</span>
+<a id="__codelineno-12-3" name="__codelineno-12-3"></a>
+<a id="__codelineno-12-4" name="__codelineno-12-4"></a><span class="n">mllm</span> <span class="o">=</span> <span class="n">MultimodalModel</span><span class="p">(</span>
+<a id="__codelineno-12-5" name="__codelineno-12-5"></a>    <span class="n">encoders</span><span class="o">=</span><span class="p">{</span>
+<a id="__codelineno-12-6" name="__codelineno-12-6"></a>        <span class="s2">&quot;vision&quot;</span><span class="p">:</span> <span class="n">ModalEncoderModule</span><span class="p">(</span>
+<a id="__codelineno-12-7" name="__codelineno-12-7"></a>            <span class="n">model</span><span class="o">=</span><span class="n">siglip</span><span class="p">,</span>
+<a id="__codelineno-12-8" name="__codelineno-12-8"></a>            <span class="n">postprocess_projector_callback</span><span class="o">=</span><span class="n">postprocess_projector_callback</span><span class="p">,</span>
+<a id="__codelineno-12-9" name="__codelineno-12-9"></a>        <span class="p">)</span>
+<a id="__codelineno-12-10" name="__codelineno-12-10"></a>    <span class="p">},</span>
+<a id="__codelineno-12-11" name="__codelineno-12-11"></a>    <span class="n">language_model</span><span class="o">=</span><span class="n">llama</span><span class="p">,</span>
+<a id="__codelineno-12-12" name="__codelineno-12-12"></a><span class="p">)</span>
 </code></pre></div></td></tr></table></div>
 
 
